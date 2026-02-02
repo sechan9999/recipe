@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="냉장고 사진으로 재료를 AI가 인식하고 맞춤 레시피를 추천받으세요. OpenRouter API 기반 무료 서비스">
+    <meta name="keywords" content="레시피, AI, 냉장고, 재료 인식, 요리, Smart Recipe">
+    <title>🍳 Smart Recipe - AI 냉장고 레시피 추천</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🍳 Smart Recipe</h1>
+            <p class="subtitle">냉장고 사진으로 재료를 인식하고 레시피를 추천받으세요</p>
+        </header>
+
+        <!-- API Key Setup Banner -->
+        <div id="apiKeyBanner" class="api-key-banner">
+            <div class="banner-content">
+                <span class="banner-icon">🔑</span>
+                <span class="banner-text">OpenRouter API 키를 설정해주세요</span>
+                <button class="btn btn-small btn-light" onclick="openApiKeyModal()">설정하기</button>
+            </div>
+        </div>
+
+        <!-- Steps Indicator -->
+        <div class="steps-indicator">
+            <div class="step active" id="step1-indicator">
+                <span class="step-number">1</span>
+                <span class="step-label">재료 인식</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step2-indicator">
+                <span class="step-number">2</span>
+                <span class="step-label">레시피 생성</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step3-indicator">
+                <span class="step-number">3</span>
+                <span class="step-label">저장</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Step 1: Image Upload -->
+            <section id="step1-section">
+                <h2>📷 Step 1: 냉장고 사진 업로드</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <div class="upload-icon">📸</div>
+                    <p>이미지를 드래그하거나 클릭하여 업로드</p>
+                    <p class="upload-hint">JPG, PNG, WebP (최대 10MB)</p>
+                </div>
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="previewImage" alt="미리보기">
+                    <button class="btn btn-secondary btn-small" id="removeImage" style="margin-top: 12px;">이미지 제거</button>
+                </div>
+                <button class="btn btn-primary" id="analyzeBtn" disabled>
+                    <span class="btn-text">🔍 재료 분석하기</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </section>
+
+            <!-- Ingredients Section -->
+            <section id="ingredients-section" style="display: none;">
+                <h2>🥬 인식된 재료</h2>
+                <p class="section-desc">재료를 수정하거나 추가/삭제할 수 있습니다</p>
+                <div class="ingredients-list" id="ingredientsList"></div>
+                <div class="add-ingredient">
+                    <input type="text" id="newIngredient" placeholder="재료 추가..." maxlength="30">
+                    <button class="btn btn-secondary btn-small" id="addIngredientBtn">추가</button>
+                </div>
+            </section>
+
+            <!-- Step 2: Recipe Options -->
+            <section id="step2-section" style="display: none;">
+                <h2>🍽️ Step 2: 레시피 옵션 선택</h2>
+                <p class="section-desc">원하는 요리 스타일을 선택하세요</p>
+                
+                <div class="selected-ingredients">
+                    <label>선택된 재료:</label>
+                    <div class="ingredients-preview" id="ingredientsPreview"></div>
+                </div>
+
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>🍲 요리 종류</label>
+                        <select id="cuisineType">
+                            <option value="한식">한식</option>
+                            <option value="양식">양식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                            <option value="아무거나">아무거나</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>📊 난이도</label>
+                        <select id="difficultyLevel">
+                            <option value="초급">초급</option>
+                            <option value="중급" selected>중급</option>
+                            <option value="고급">고급</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>⏱️ 조리 시간</label>
+                        <select id="cookTime">
+                            <option value="15분 이내">15분 이내</option>
+                            <option value="30분 이내" selected>30분 이내</option>
+                            <option value="1시간 이내">1시간 이내</option>
+                            <option value="상관없음">상관없음</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>👥 인원</label>
+                        <select id="servings">
+                            <option value="1">1인분</option>
+                            <option value="2" selected>2인분</option>
+                            <option value="4">4인분</option>
+                            <option value="6">6인분 이상</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="generateRecipeBtn">
+                    <span class="btn-text">🍳 레시피 생성하기</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+            </section>
+
+            <!-- Recipe Result -->
+            <section id="recipe-section" style="display: none;">
+                <div class="section-header">
+                    <h2>📖 추천 레시피</h2>
+                    <button class="btn btn-secondary btn-small" id="regenerateBtn">🔄 다른 레시피</button>
+                </div>
+
+                <div class="recipe-card" id="recipeCard">
+                    <div class="recipe-header">
+                        <h3 class="recipe-name" id="recipeName">요리 이름</h3>
+                        <p class="recipe-description" id="recipeDescription">요리 설명</p>
+                    </div>
+                    
+                    <div class="recipe-meta" id="recipeMeta">
+                        <div class="meta-item"><span>⏱️</span><span id="recipeTime">30분</span></div>
+                        <div class="meta-item"><span>📊</span><span id="recipeDifficulty">중급</span></div>
+                        <div class="meta-item"><span>👥</span><span id="recipeServings">2인분</span></div>
+                    </div>
+
+                    <div class="recipe-section">
+                        <h3>📝 재료</h3>
+                        <ul class="recipe-ingredients" id="recipeIngredients"></ul>
+                    </div>
+
+                    <div class="recipe-section">
+                        <h3>👨‍🍳 조리 순서</h3>
+                        <ol class="recipe-steps" id="recipeSteps"></ol>
+                    </div>
+
+                    <div class="tips-section">
+                        <h3>💡 조리 팁</h3>
+                        <p class="recipe-tips" id="recipeTips"></p>
+                    </div>
+
+                    <div class="recipe-notes">
+                        <label>📝 메모 (선택)</label>
+                        <textarea id="recipeNotes" placeholder="나만의 메모를 남겨보세요..."></textarea>
+                    </div>
+
+                    <div class="recipe-actions">
+                        <button class="btn btn-save" id="saveRecipeBtn">💾 레시피 저장하기</button>
+                        <button class="btn btn-secondary" id="newRecipeBtn">🔄 처음부터 다시</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Saved Recipes -->
+            <section id="saved-section">
+                <div class="section-header">
+                    <h2>📚 저장된 레시피</h2>
+                    <button class="btn btn-secondary btn-small" id="clearAllBtn" style="display: none;">🗑️ 전체 삭제</button>
+                </div>
+                <div class="stats-bar" id="statsBar" style="display: none;">
+                    <span>📊 총 <strong id="totalRecipes">0</strong>개의 레시피</span>
+                </div>
+                <div class="recipes-grid" id="recipesGrid">
+                    <p class="empty-message">저장된 레시피가 없습니다.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>Powered by <a href="https://openrouter.ai/" target="_blank" rel="noopener">OpenRouter API</a> (Gemma 3 & DeepSeek)</p>
+            <p style="margin-top: 5px;">
+                <a href="https://github.com/sechan9999/recipe" target="_blank" rel="noopener">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeApiKeyModal()">&times;</span>
+            <h2>🔑 API 키 설정</h2>
+            <p class="modal-desc">OpenRouter API 키를 입력하세요. 키는 브라우저에 안전하게 저장됩니다.</p>
+            <div class="form-group">
+                <label>OpenRouter API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="sk-or-v1-...">
+            </div>
+            <p class="api-help">
+                <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter에서 무료 API 키 발급받기 →</a>
+            </p>
+            <button class="btn btn-primary" onclick="saveApiKey()">저장하기</button>
+        </div>
+    </div>
+
+    <!-- Recipe Detail Modal -->
+    <div id="recipeDetailModal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <span class="modal-close" onclick="closeRecipeDetailModal()">&times;</span>
+            <div id="recipeDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Success/Error Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
