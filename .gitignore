@@ -1,0 +1,20 @@
+# Environment variables (API keys, secrets)
+.env
+.env.local
+.env*.local
+.env.txt
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Database
+*.db
+
+# Claude settings
+.claude/

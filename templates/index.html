@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Recipe - 냉장고 재료 인식</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍳 Smart Recipe</h1>
+            <p class="subtitle">냉장고 사진으로 재료를 인식하고 레시피를 추천받으세요</p>
+
+            <!-- 사용자 메뉴 -->
+            <div class="user-menu" id="userMenu">
+                <div class="guest-menu" id="guestMenu">
+                    <button class="btn-link" id="showLoginBtn">로그인</button>
+                    <span class="divider">|</span>
+                    <button class="btn-link" id="showRegisterBtn">회원가입</button>
+                </div>
+                <div class="logged-menu" id="loggedMenu" style="display: none;">
+                    <span class="user-name" id="userName"></span>
+                    <button class="btn-link" id="showMyRecipesBtn">내 레시피</button>
+                    <button class="btn-link" id="showProfileBtn">프로필</button>
+                    <button class="btn-link" id="logoutBtn">로그아웃</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 진행 단계 표시 -->
+        <div class="steps-indicator">
+            <div class="step active" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-label">재료 인식</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-label">레시피 생성</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-label">저장</span>
+            </div>
+        </div>
+
+        <main>
+            <!-- Step 1: 이미지 업로드 -->
+            <section class="upload-section" id="step1Section">
+                <h2>Step 1: 냉장고 사진 업로드</h2>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">📷</div>
+                        <p>이미지를 드래그하거나 클릭하여 업로드</p>
+                        <p class="upload-hint">JPG, PNG, WebP (최대 10MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden>
+                </div>
+
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="previewImage" alt="업로드된 이미지">
+                    <button class="btn btn-secondary" id="removeImage">이미지 제거</button>
+                </div>
+
+                <button class="btn btn-primary" id="analyzeBtn" disabled>
+                    <span class="btn-text">재료 분석하기</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        분석 중...
+                    </span>
+                </button>
+            </section>
+
+            <!-- 재료 목록 -->
+            <section class="ingredients-section" id="ingredientsSection" style="display: none;">
+                <h2>인식된 재료</h2>
+                <p class="section-desc">재료를 수정하거나 추가/삭제할 수 있습니다</p>
+
+                <div class="ingredients-list" id="ingredientsList"></div>
+
+                <div class="add-ingredient">
+                    <input type="text" id="newIngredient" placeholder="재료 추가...">
+                    <button class="btn btn-small" id="addIngredientBtn">추가</button>
+                </div>
+
+                <button class="btn btn-primary" id="nextStepBtn">
+                    레시피 추천받기 →
+                </button>
+            </section>
+
+            <!-- Step 2: 레시피 옵션 -->
+            <section class="recipe-options-section" id="recipeOptionsSection" style="display: none;">
+                <h2>Step 2: 레시피 옵션 선택</h2>
+                <p class="section-desc">원하는 요리 스타일을 선택하세요</p>
+
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label>요리 종류</label>
+                        <select id="cuisineSelect">
+                            <option value="상관없음">상관없음</option>
+                            <option value="한식">한식</option>
+                            <option value="양식">양식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                            <option value="분식">분식</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>난이도</label>
+                        <select id="difficultySelect">
+                            <option value="초급">초급</option>
+                            <option value="중급" selected>중급</option>
+                            <option value="고급">고급</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>조리 시간</label>
+                        <select id="cookTimeSelect">
+                            <option value="15분 이내">15분 이내</option>
+                            <option value="30분 이내" selected>30분 이내</option>
+                            <option value="1시간 이내">1시간 이내</option>
+                            <option value="상관없음">상관없음</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>인원</label>
+                        <select id="servingsSelect">
+                            <option value="1">1인분</option>
+                            <option value="2" selected>2인분</option>
+                            <option value="4">4인분</option>
+                            <option value="6">6인분</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="selected-ingredients">
+                    <label>선택된 재료:</label>
+                    <div class="ingredients-preview" id="ingredientsPreview"></div>
+                </div>
+
+                <button class="btn btn-primary" id="generateRecipeBtn">
+                    <span class="btn-text">🍽️ 레시피 생성하기</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        레시피 생성 중...
+                    </span>
+                </button>
+
+                <button class="btn btn-secondary" id="backToStep1Btn">
+                    ← 재료 다시 선택
+                </button>
+            </section>
+
+            <!-- 레시피 결과 -->
+            <section class="recipe-result-section" id="recipeResultSection" style="display: none;">
+                <div class="recipe-card" id="recipeCard">
+                    <div class="recipe-header">
+                        <h2 class="recipe-name" id="recipeName">요리 이름</h2>
+                        <p class="recipe-description" id="recipeDescription">요리 설명</p>
+                    </div>
+
+                    <div class="recipe-meta">
+                        <span class="meta-item">⏱️ <span id="recipeCookTime">30분</span></span>
+                        <span class="meta-item">📊 <span id="recipeDifficulty">중급</span></span>
+                        <span class="meta-item">👥 <span id="recipeServings">2인분</span></span>
+                    </div>
+
+                    <div class="recipe-section">
+                        <h3>📝 재료</h3>
+                        <ul class="recipe-ingredients" id="recipeIngredients"></ul>
+                    </div>
+
+                    <div class="recipe-section">
+                        <h3>👨‍🍳 조리 순서</h3>
+                        <ol class="recipe-steps" id="recipeSteps"></ol>
+                    </div>
+
+                    <div class="recipe-section tips-section" id="tipsSectionContainer" style="display: none;">
+                        <h3>💡 조리 팁</h3>
+                        <p class="recipe-tips" id="recipeTips"></p>
+                    </div>
+                </div>
+
+                <!-- 메모 입력 (로그인 시) -->
+                <div class="recipe-notes" id="recipeNotesSection" style="display: none;">
+                    <label>메모 (선택사항)</label>
+                    <textarea id="recipeNotes" placeholder="이 레시피에 대한 메모를 남겨보세요..."></textarea>
+                </div>
+
+                <div class="recipe-actions">
+                    <button class="btn btn-primary" id="regenerateBtn">
+                        <span class="btn-text">🔄 다른 레시피 보기</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                            생성 중...
+                        </span>
+                    </button>
+                    <button class="btn btn-save" id="saveRecipeBtn">
+                        💾 레시피 저장
+                    </button>
+                    <button class="btn btn-secondary" id="newSearchBtn">
+                        🔍 새로운 재료로 시작
+                    </button>
+                </div>
+            </section>
+
+            <!-- 내 레시피 목록 -->
+            <section class="my-recipes-section" id="myRecipesSection" style="display: none;">
+                <div class="section-header">
+                    <h2>📚 내 레시피</h2>
+                    <button class="btn btn-secondary btn-small" id="backToMainBtn">← 메인으로</button>
+                </div>
+
+                <div class="stats-bar" id="statsBar">
+                    <span>저장된 레시피: <strong id="statRecipeCount">0</strong>개</span>
+                    <span>분석 횟수: <strong id="statAnalysisCount">0</strong>회</span>
+                </div>
+
+                <div class="recipes-grid" id="recipesGrid">
+                    <p class="empty-message">저장된 레시피가 없습니다.</p>
+                </div>
+            </section>
+
+            <!-- 프로필 설정 -->
+            <section class="profile-section" id="profileSection" style="display: none;">
+                <div class="section-header">
+                    <h2>⚙️ 프로필 설정</h2>
+                    <button class="btn btn-secondary btn-small" id="backFromProfileBtn">← 메인으로</button>
+                </div>
+
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label>닉네임</label>
+                        <input type="text" id="profileNickname" placeholder="닉네임">
+                    </div>
+
+                    <div class="form-group">
+                        <label>알레르기 (쉼표로 구분)</label>
+                        <input type="text" id="profileAllergies" placeholder="예: 땅콩, 우유, 새우">
+                    </div>
+
+                    <div class="form-group">
+                        <label>식이 제한</label>
+                        <select id="profileDietary" multiple>
+                            <option value="채식">채식</option>
+                            <option value="비건">비건</option>
+                            <option value="할랄">할랄</option>
+                            <option value="글루텐프리">글루텐프리</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>선호 요리</label>
+                        <select id="profileCuisines" multiple>
+                            <option value="한식">한식</option>
+                            <option value="양식">양식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" id="saveProfileBtn">저장</button>
+                </div>
+
+                <div class="top-ingredients" id="topIngredientsSection">
+                    <h3>🥬 자주 사용하는 재료</h3>
+                    <div id="topIngredientsList"></div>
+                </div>
+            </section>
+
+            <!-- 에러 메시지 -->
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <p id="errorText"></p>
+            </div>
+
+            <!-- 성공 메시지 -->
+            <div class="success-message" id="successMessage" style="display: none;">
+                <p id="successText"></p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by OpenRouter API (Gemma 3 & DeepSeek)</p>
+        </footer>
+    </div>
+
+    <!-- 로그인 모달 -->
+    <div class="modal" id="loginModal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" id="closeLoginModal">&times;</span>
+            <h2>로그인</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">로그인</button>
+            </form>
+            <p class="modal-link">
+                계정이 없으신가요? <a href="#" id="switchToRegister">회원가입</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- 회원가입 모달 -->
+    <div class="modal" id="registerModal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" id="closeRegisterModal">&times;</span>
+            <h2>회원가입</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호 (6자 이상)</label>
+                    <input type="password" id="registerPassword" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label>닉네임</label>
+                    <input type="text" id="registerNickname">
+                </div>
+                <button type="submit" class="btn btn-primary">회원가입</button>
+            </form>
+            <p class="modal-link">
+                이미 계정이 있으신가요? <a href="#" id="switchToLogin">로그인</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- 레시피 상세 모달 -->
+    <div class="modal" id="recipeDetailModal" style="display: none;">
+        <div class="modal-content modal-large">
+            <span class="modal-close" id="closeRecipeDetailModal">&times;</span>
+            <div id="recipeDetailContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="deleteRecipeBtn">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
