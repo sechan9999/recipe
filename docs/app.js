@@ -27,13 +27,28 @@ let currentRecipe = null;
 let currentImageBase64 = null;
 let currentMimeType = null;
 
+// ==================== Security Utilities ====================
+/**
+ * XSS 방지를 위한 HTML 이스케이핑 함수
+ * @param {string} text - 이스케이핑할 텍스트
+ * @returns {string} 이스케이핑된 텍스트
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
 // ==================== LocalStorage ====================
 function getApiKey() {
-    return localStorage.getItem('openrouter_api_key') || '';
+    // sessionStorage 사용 - 브라우저 닫으면 자동 삭제되어 더 안전
+    return sessionStorage.getItem('openrouter_api_key') || '';
 }
 
 function setApiKey(key) {
-    localStorage.setItem('openrouter_api_key', key);
+    // sessionStorage 사용 - 브라우저 닫으면 자동 삭제되어 더 안전
+    sessionStorage.setItem('openrouter_api_key', key);
     updateApiKeyBanner();
 }
 
@@ -134,13 +149,13 @@ function renderIngredients() {
 
     list.innerHTML = ingredients.map((ing, i) => `
         <div class="ingredient-tag">
-            <span>${ing}</span>
+            <span>${escapeHtml(ing)}</span>
             <span class="remove" onclick="removeIngredient(${i})">×</span>
         </div>
     `).join('');
 
     preview.innerHTML = ingredients.map(ing => `
-        <span class="tag">${ing}</span>
+        <span class="tag">${escapeHtml(ing)}</span>
     `).join('');
 
     // Enable/disable generate button
@@ -183,11 +198,11 @@ function renderSavedRecipes() {
         grid.innerHTML = recipes.map(r => `
             <div class="recipe-item" onclick="showRecipeDetail(${r.id})">
                 <div class="recipe-item-header">
-                    <span class="recipe-item-name">${r.recipe_name}</span>
-                    <span class="recipe-item-date">${formatDate(r.created_at)}</span>
+                    <span class="recipe-item-name">${escapeHtml(r.recipe_name)}</span>
+                    <span class="recipe-item-date">${escapeHtml(formatDate(r.created_at))}</span>
                 </div>
                 <div class="recipe-item-meta">
-                    ${r.cuisine_type || ''} · ${r.difficulty || ''} · ${r.cook_time || ''}
+                    ${escapeHtml(r.cuisine_type || '')} · ${escapeHtml(r.difficulty || '')} · ${escapeHtml(r.cook_time || '')}
                 </div>
             </div>
         `).join('');
@@ -209,13 +224,13 @@ function showRecipeDetail(id) {
     const content = document.getElementById('recipeDetailContent');
 
     content.innerHTML = `
-        <h2>${r.name}</h2>
-        <p style="color: #666; margin-bottom: 20px;">${r.description || ''}</p>
+        <h2>${escapeHtml(r.name)}</h2>
+        <p style="color: #666; margin-bottom: 20px;">${escapeHtml(r.description || '')}</p>
         
         <div class="recipe-meta" style="margin-bottom: 20px;">
-            <div class="meta-item"><span>⏱️</span><span>${r.cookTime || recipe.cook_time}</span></div>
-            <div class="meta-item"><span>📊</span><span>${r.difficulty || recipe.difficulty}</span></div>
-            <div class="meta-item"><span>👥</span><span>${r.servings || '2'}인분</span></div>
+            <div class="meta-item"><span>⏱️</span><span>${escapeHtml(r.cookTime || recipe.cook_time)}</span></div>
+            <div class="meta-item"><span>📊</span><span>${escapeHtml(r.difficulty || recipe.difficulty)}</span></div>
+            <div class="meta-item"><span>👥</span><span>${escapeHtml(r.servings || '2')}인분</span></div>
         </div>
         
         <div class="recipe-section">
@@ -223,8 +238,8 @@ function showRecipeDetail(id) {
             <ul class="recipe-ingredients">
                 ${(r.ingredients || []).map(i => `
                     <li>
-                        <span>${typeof i === 'string' ? i : i.name}</span>
-                        <span class="amount">${typeof i === 'string' ? '' : i.amount || ''}</span>
+                        <span>${escapeHtml(typeof i === 'string' ? i : i.name)}</span>
+                        <span class="amount">${escapeHtml(typeof i === 'string' ? '' : i.amount || '')}</span>
                     </li>
                 `).join('')}
             </ul>
@@ -233,25 +248,25 @@ function showRecipeDetail(id) {
         <div class="recipe-section">
             <h3>👨‍🍳 조리 순서</h3>
             <ol class="recipe-steps">
-                ${(r.steps || []).map(s => `<li>${s}</li>`).join('')}
+                ${(r.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
             </ol>
         </div>
         
         ${r.tips ? `
         <div class="tips-section">
             <h3>💡 조리 팁</h3>
-            <p class="recipe-tips">${r.tips}</p>
+            <p class="recipe-tips">${escapeHtml(r.tips)}</p>
         </div>
         ` : ''}
         
         ${recipe.notes ? `
         <div style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-top: 15px;">
             <h3 style="margin-bottom: 8px;">📝 메모</h3>
-            <p style="color: #666;">${recipe.notes}</p>
+            <p style="color: #666;">${escapeHtml(recipe.notes)}</p>
         </div>
         ` : ''}
         
-        <p style="color: #999; font-size: 0.85rem; margin-top: 20px;">저장일: ${formatDate(recipe.created_at)}</p>
+        <p style="color: #999; font-size: 0.85rem; margin-top: 20px;">저장일: ${escapeHtml(formatDate(recipe.created_at))}</p>
         
         <div class="recipe-actions" style="margin-top: 20px;">
             <button class="btn btn-danger" onclick="deleteRecipe(${id})">🗑️ 삭제하기</button>
@@ -287,12 +302,12 @@ function renderRecipe(recipe) {
     if (recipe.ingredients && recipe.ingredients.length > 0) {
         ingredientsList.innerHTML = recipe.ingredients.map(i => {
             if (typeof i === 'string') {
-                return `<li><span>${i}</span><span class="amount"></span></li>`;
+                return `<li><span>${escapeHtml(i)}</span><span class="amount"></span></li>`;
             }
             return `
                 <li>
-                    <span>${i.name}${i.available === false ? ' <span class="unavailable">(추가 필요)</span>' : ''}</span>
-                    <span class="amount">${i.amount || ''}</span>
+                    <span>${escapeHtml(i.name)}${i.available === false ? ' <span class="unavailable">(추가 필요)</span>' : ''}</span>
+                    <span class="amount">${escapeHtml(i.amount || '')}</span>
                 </li>
             `;
         }).join('');
@@ -303,7 +318,7 @@ function renderRecipe(recipe) {
     // Steps
     const stepsList = document.getElementById('recipeSteps');
     if (recipe.steps && recipe.steps.length > 0) {
-        stepsList.innerHTML = recipe.steps.map(s => `<li>${s}</li>`).join('');
+        stepsList.innerHTML = recipe.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('');
     } else {
         stepsList.innerHTML = '<li>조리 순서 정보가 없습니다.</li>';
     }
