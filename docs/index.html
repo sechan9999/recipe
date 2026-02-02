@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,11 @@
     <title>🍳 Smart Recipe - AI 냉장고 레시피 추천</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Header -->
@@ -51,15 +54,23 @@
             <!-- Step 1: Image Upload -->
             <section id="step1-section">
                 <h2>📷 Step 1: 냉장고 사진 업로드</h2>
-                <div class="upload-area" id="uploadArea">
-                    <input type="file" id="imageInput" accept="image/*" hidden>
-                    <div class="upload-icon">📸</div>
-                    <p>이미지를 드래그하거나 클릭하여 업로드</p>
-                    <p class="upload-hint">JPG, PNG, WebP (최대 10MB)</p>
-                </div>
-                <div class="preview-container" id="previewContainer" style="display: none;">
-                    <img id="previewImage" alt="미리보기">
-                    <button class="btn btn-secondary btn-small" id="removeImage" style="margin-top: 12px;">이미지 제거</button>
+                <div class="upload-container">
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="imageInput" accept="image/*" hidden>
+
+                        <!-- 업로드 안내 문구 (이미지가 있으면 숨겨짐) -->
+                        <div class="upload-content">
+                            <div class="upload-icon">📸</div>
+                            <p>이미지를 드래그하거나 클릭하여 업로드</p>
+                            <p class="upload-hint">JPG, PNG, WebP (최대 10MB)</p>
+                        </div>
+
+                        <!-- 이미지 미리보기 (이미지가 없으면 숨겨짐) -->
+                        <div class="preview-container" id="previewContainer" style="display: none;">
+                            <img id="previewImage" alt="미리보기">
+                            <button class="btn btn-secondary btn-small" id="removeImage">이미지 제거</button>
+                        </div>
+                    </div>
                 </div>
                 <button class="btn btn-primary" id="analyzeBtn" disabled>
                     <span class="btn-text">🔍 재료 분석하기</span>
@@ -82,7 +93,7 @@
             <section id="step2-section" style="display: none;">
                 <h2>🍽️ Step 2: 레시피 옵션 선택</h2>
                 <p class="section-desc">원하는 요리 스타일을 선택하세요</p>
-                
+
                 <div class="selected-ingredients">
                     <label>선택된 재료:</label>
                     <div class="ingredients-preview" id="ingredientsPreview"></div>
@@ -145,7 +156,7 @@
                         <h3 class="recipe-name" id="recipeName">요리 이름</h3>
                         <p class="recipe-description" id="recipeDescription">요리 설명</p>
                     </div>
-                    
+
                     <div class="recipe-meta" id="recipeMeta">
                         <div class="meta-item"><span>⏱️</span><span id="recipeTime">30분</span></div>
                         <div class="meta-item"><span>📊</span><span id="recipeDifficulty">중급</span></div>
@@ -183,7 +194,8 @@
             <section id="saved-section">
                 <div class="section-header">
                     <h2>📚 저장된 레시피</h2>
-                    <button class="btn btn-secondary btn-small" id="clearAllBtn" style="display: none;">🗑️ 전체 삭제</button>
+                    <button class="btn btn-secondary btn-small" id="clearAllBtn" style="display: none;">🗑️ 전체
+                        삭제</button>
                 </div>
                 <div class="stats-bar" id="statsBar" style="display: none;">
                     <span>📊 총 <strong id="totalRecipes">0</strong>개의 레시피</span>
@@ -196,7 +208,8 @@
 
         <!-- Footer -->
         <footer>
-            <p>Powered by <a href="https://openrouter.ai/" target="_blank" rel="noopener">OpenRouter API</a> (Gemma 3 & DeepSeek)</p>
+            <p>Powered by <a href="https://openrouter.ai/" target="_blank" rel="noopener">OpenRouter API</a> (Gemma 3 &
+                DeepSeek)</p>
             <p style="margin-top: 5px;">
                 <a href="https://github.com/sechan9999/recipe" target="_blank" rel="noopener">GitHub</a>
             </p>
@@ -233,4 +246,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>

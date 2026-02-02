@@ -1,0 +1,28 @@
+{
+  "name": "recipe",
+  "version": "1.0.0",
+  "description": "> 냉장고 사진 한 장으로 맛있는 요리 레시피를 자동으로 추천받으세요!",
+  "main": "electron_main.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sechan9999/recipe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sechan9999/recipe/issues"
+  },
+  "homepage": "https://github.com/sechan9999/recipe#readme",
+  "devDependencies": {
+    "electron": "^40.1.0"
+  }
+}

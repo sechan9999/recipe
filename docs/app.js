@@ -626,6 +626,7 @@ function resetAll() {
     currentMimeType = null;
 
     document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('uploadArea').classList.remove('has-image'); // 클래스 제거
     document.getElementById('ingredients-section').style.display = 'none';
     document.getElementById('step2-section').style.display = 'none';
     document.getElementById('recipe-section').style.display = 'none';
@@ -694,16 +695,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('previewImage').src = dataUrl;
             document.getElementById('previewContainer').style.display = 'block';
+            document.getElementById('uploadArea').classList.add('has-image'); // 클래스 추가
             analyzeBtn.disabled = false;
         };
         reader.readAsDataURL(file);
     }
 
     // Remove image
-    document.getElementById('removeImage').addEventListener('click', () => {
+    document.getElementById('removeImage').addEventListener('click', (e) => {
+        e.stopPropagation(); // 이벤트 전파 중단 (파일 선택창 뜨지 않게)
         currentImageBase64 = null;
         currentMimeType = null;
         document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('uploadArea').classList.remove('has-image'); // 클래스 제거
         document.getElementById('imageInput').value = '';
         analyzeBtn.disabled = true;
     });

@@ -19,10 +19,19 @@ body {
     line-height: 1.6;
 }
 
+/* Main Container - Wider for Desktop */
 .container {
-    max-width: 680px;
+    max-width: 1000px;
+    /* 680px -> 1000px 확대 */
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px;
+    transition: max-width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
 }
 
 /* Header */
@@ -192,45 +201,78 @@ h2 {
 }
 
 /* Upload Area */
+/* Upload Area & Preview Integration */
+.upload-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f9f9f9;
+}
+
 .upload-area {
     border: 3px dashed #ddd;
+    /* 점선 테두리는 그대로 유지하되 */
     border-radius: 16px;
-    padding: 40px 24px;
+    padding: 60px 40px;
+    /* 패딩을 늘려 시원하게 */
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    background: transparent;
+    /* 배경 투명 */
+    position: relative;
+    z-index: 10;
 }
 
-.upload-area:hover,
-.upload-area.dragover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #f0f0ff 0%, #e8e8ff 100%);
-    transform: translateY(-2px);
+/* 이미지가 있을 때 upload-area 스타일 변경 */
+.upload-area.has-image {
+    padding: 0;
+    border: none;
 }
 
-.upload-icon {
-    font-size: 3rem;
-    margin-bottom: 14px;
+.upload-area.has-image .upload-content {
+    display: none;
+    /* 텍스트 내용 숨김 */
 }
 
-.upload-hint {
-    color: #999;
-    font-size: 0.85rem;
-    margin-top: 10px;
-}
-
-/* Preview */
+/* Preview Image within Area */
 .preview-container {
-    margin-top: 18px;
+    margin-top: 0;
+    /* margin 제거 */
     text-align: center;
+    line-height: 0;
+    position: relative;
 }
 
 #previewImage {
-    max-width: 100%;
-    max-height: 280px;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    /* 높이는 auto로 두되 max-height 설정 */
+    max-height: 500px;
+    object-fit: contain;
+    /* 비율 유지 */
+    background: #000;
+    /* 이미지 배경 */
+    border-radius: 16px;
+}
+
+/* Remove button overlay */
+#removeImage {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    margin-top: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    color: white !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 20;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+#removeImage:hover {
+    background: rgba(0, 0, 0, 0.8) !important;
+    transform: scale(1.05);
 }
 
 /* Buttons - Enhanced for Touch */
