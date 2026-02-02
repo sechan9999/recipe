@@ -36,7 +36,7 @@ header {
 header h1 {
     font-size: 2.4rem;
     margin-bottom: 10px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
@@ -75,7 +75,7 @@ header h1 {
 }
 
 .btn-light {
-    background: rgba(255,255,255,0.95) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
     color: #333 !important;
 }
 
@@ -103,8 +103,13 @@ header h1 {
     transition: all 0.3s ease;
 }
 
-.step.active { color: white; }
-.step.completed { color: #90EE90; }
+.step.active {
+    color: white;
+}
+
+.step.completed {
+    color: #90EE90;
+}
 
 .step-number {
     width: 28px;
@@ -122,7 +127,7 @@ header h1 {
 .step.active .step-number {
     background: white;
     color: #667eea;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .step.completed .step-number {
@@ -143,7 +148,7 @@ header h1 {
     border-radius: 2px;
 }
 
-.step.completed + .step-line {
+.step.completed+.step-line {
     background: #90EE90;
 }
 
@@ -228,21 +233,39 @@ h2 {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Buttons */
+/* Buttons - Enhanced for Touch */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 14px 28px;
+    padding: 16px 28px;
+    /* 터치 영역 확대 */
     border: none;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    /* 가독성 향상 */
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     margin-top: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:active {
+    transform: scale(0.98);
+    /* 클릭 피드백 */
+}
+
+/* Accessibility Focus Ring */
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 2px;
 }
 
 .btn-primary {
@@ -311,7 +334,28 @@ h2 {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 /* Ingredients */
@@ -481,7 +525,7 @@ h2 {
     padding: 8px 14px;
     border-radius: 18px;
     font-size: 0.88rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .recipe-section {
@@ -677,7 +721,7 @@ h2 {
     width: 92%;
     max-width: 420px;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: modalIn 0.3s ease;
 }
 
@@ -686,6 +730,7 @@ h2 {
         opacity: 0;
         transform: scale(0.9) translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -775,7 +820,7 @@ h2 {
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 500;
-    box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
     z-index: 2000;
     transition: transform 0.3s ease;
 }
@@ -814,38 +859,38 @@ footer a:hover {
     .container {
         padding: 14px;
     }
-    
+
     header h1 {
         font-size: 2rem;
     }
-    
+
     main {
         padding: 20px;
     }
-    
+
     .options-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .steps-indicator {
         flex-wrap: wrap;
         gap: 10px;
     }
-    
+
     .step-line {
         display: none;
     }
-    
+
     .recipe-meta {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .stats-bar {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .banner-content {
         flex-direction: column;
         text-align: center;

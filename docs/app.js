@@ -349,8 +349,14 @@ async function callOpenRouter(model, messages) {
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'API 요청 실패');
+        let errorMessage = 'API 요청 실패';
+        try {
+            const error = await response.json();
+            errorMessage = error.error?.message || errorMessage;
+        } catch {
+            // JSON 파싱 실패 시 기본 메시지 유지
+        }
+        throw new Error(errorMessage);
     }
 
     return await response.json();
@@ -451,29 +457,44 @@ async function analyzeImage() {
 
     let lastError = null;
 
-    for (const model of IMAGE_MODELS) {
+    // 성능 최적화: 병렬 호출로 가장 빠른 응답 사용 (Promise.any)
+    const promises = IMAGE_MODELS.map(async (model) => {
         try {
             const result = await callOpenRouter(model, messages);
-            const content = result.choices[0].message.content;
-            ingredients = extractIngredients(content);
+            const content = result?.choices?.[0]?.message?.content;
 
-            if (ingredients.length > 0) {
-                document.getElementById('ingredients-section').style.display = 'block';
-                document.getElementById('step2-section').style.display = 'block';
-                renderIngredients();
-                updateStepIndicator(2);
-                showToast(`${ingredients.length}개의 재료가 인식되었습니다!`, 'success');
-                break;
+            if (!content) {
+                console.warn(`Model ${model} returned empty content`);
+                throw new Error('Empty content');
             }
+
+            const detected = extractIngredients(content);
+            if (detected.length === 0) throw new Error('No ingredients detected');
+
+            return detected;
         } catch (err) {
-            lastError = err;
-            console.log(`Model ${model} failed:`, err.message);
-            // Try next model
+            console.warn(`Model ${model} failed:`, err.message);
+            lastError = err; // 마지막 에러 저장
+            throw err;
         }
+    });
+
+    try {
+        ingredients = await Promise.any(promises);
+
+        document.getElementById('ingredients-section').style.display = 'block';
+        document.getElementById('step2-section').style.display = 'block';
+        renderIngredients();
+        updateStepIndicator(2);
+        showToast(`${ingredients.length}개의 재료가 인식되었습니다!`, 'success');
+    } catch (aggregateError) {
+        console.error('All image models failed:', aggregateError);
+        showToast(lastError?.message || '재료를 인식할 수 없습니다. 다시 시도해주세요.', 'error');
     }
 
-    if (ingredients.length === 0) {
-        showToast(lastError?.message || '재료를 인식할 수 없습니다. 다시 시도해주세요.', 'error');
+    if (ingredients.length === 0 && !lastError) {
+        // Promise.any가 성공했으나 빈 배열일 경우 (이론상 위에서 처리되지만 안전장치)
+        // showToast('재료를 찾지 못했습니다.', 'error');
     }
 
     btn.disabled = !currentImageBase64;
@@ -544,28 +565,41 @@ async function generateRecipe() {
 
     let lastError = null;
 
-    for (const model of TEXT_MODELS) {
+    // 성능 최적화: 레시피 생성도 병렬 호출
+    const promises = TEXT_MODELS.map(async (model) => {
         try {
             const result = await callOpenRouter(model, messages);
-            const content = result.choices[0].message.content;
-            currentRecipe = extractRecipeJson(content);
+            const content = result?.choices?.[0]?.message?.content;
 
-            renderRecipe(currentRecipe);
-            document.getElementById('recipe-section').style.display = 'block';
-            document.getElementById('recipeNotes').value = '';
-            updateStepIndicator(3);
-            showToast('레시피가 생성되었습니다! 🍳', 'success');
+            if (!content) {
+                console.warn(`Model ${model} returned empty content`);
+                throw new Error('Empty content');
+            }
 
-            // Scroll to recipe
-            document.getElementById('recipe-section').scrollIntoView({ behavior: 'smooth' });
-            break;
+            const recipe = extractRecipeJson(content);
+            if (!recipe || !recipe.name) throw new Error('Invalid recipe format');
+
+            return recipe;
         } catch (err) {
+            console.warn(`Model ${model} failed:`, err.message);
             lastError = err;
-            console.log(`Model ${model} failed:`, err.message);
+            throw err;
         }
-    }
+    });
 
-    if (!currentRecipe) {
+    try {
+        currentRecipe = await Promise.any(promises);
+
+        renderRecipe(currentRecipe);
+        document.getElementById('recipe-section').style.display = 'block';
+        document.getElementById('recipeNotes').value = '';
+        updateStepIndicator(3);
+        showToast('레시피가 생성되었습니다! 🍳', 'success');
+
+        // Scroll to recipe
+        document.getElementById('recipe-section').scrollIntoView({ behavior: 'smooth' });
+    } catch (aggregateError) {
+        console.error('All recipe models failed:', aggregateError);
         showToast(lastError?.message || '레시피 생성에 실패했습니다. 다시 시도해주세요.', 'error');
     }
 
@@ -647,6 +681,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const reader = new FileReader();
+
+        reader.onerror = () => {
+            showToast('이미지 파일을 읽을 수 없습니다.', 'error');
+            document.getElementById('imageInput').value = '';
+        };
+
         reader.onload = (e) => {
             const dataUrl = e.target.result;
             currentMimeType = file.type;
